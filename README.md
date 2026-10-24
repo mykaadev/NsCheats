@@ -107,8 +107,8 @@ Run `ns.Cheats.Toggle` in the console to open the window.
 - `ButtonRow` has no Blueprint registration function.
 
 ## 📚 Documentation
-- [User Guide](https://github.com/mykaadev/NsCheats/blob/main/Docs/UserGuide.md) – Setup, common tasks, settings, and debug tools.
-- [Technical Documentation](https://github.com/mykaadev/NsCheats/blob/main/Docs/TechDocumentation.md) – Architecture, lifetime, extension points, and tests.
+- [User Guide](https://mykaadev.github.io/plugins/nscheats/user-guide/) – Setup, common tasks, settings, and debug tools.
+- [Technical Documentation](https://mykaadev.github.io/plugins/nscheats/tech-documentation/) – Architecture, lifetime, extension points, and tests.
 
 <!-- GH_ONLY_START -->
 ## ❤️ Credits
