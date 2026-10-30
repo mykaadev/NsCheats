@@ -6,6 +6,8 @@ NsCheats is a registry of debug cheats with a built-in window. Game systems regi
 
 NsCheats is for development builds. In a Shipping build, the registry, the window, and the console commands compile out, so a cheat never runs. Do not use NsCheats for player-facing features or settings.
 
+[![The NsCheats window with example cheats and a console strip](Showcase/img/cheatwindow.png)](Showcase/CheatWindow.html)
+
 ## Setup
 
 1. Copy the `NsCheats` folder into the `Plugins` folder of your project.

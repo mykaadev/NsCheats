@@ -1,0 +1,37 @@
+<!-- Showcase for the website: the docs link to this file, and the site turns the list into a cheat window with a console strip. -->
+<!-- Each list item is one cheat entry. data-type: button, toggle, float, text, picker, debug, or row. data-tab, data-section, and data-sort place it, as Tab, Category, and SortOrder do. -->
+<!-- <b> is the label and the first <span> is the description. A nested list gives the options of a picker (data-value) or the buttons of a row. -->
+<!-- Demo values: data-var names a value that the entry reads or sets, and data-value gives its first value. {name} in data-text or data-log reads a value, and {time} reads the seconds since the page loaded. -->
+<!-- Actions: data-log is a log line, data-exec is a console command for GEngine->Exec, data-add adds to the value, and data-action="dump" runs DumpRegisteredCheats. An entry without an action has no Run button. -->
+<figure class="ns-cheats" data-start="Economy/Coins">
+  <figcaption>The NsCheats window, with the built-in entries and some example game cheats. Use a row, or type a console command in the strip, for example <code>ns.Cheats.Dump</code>. The strip shows the log lines of the plugin and the commands that it runs.</figcaption>
+  <ul>
+    <li data-type="button" data-tab="Debug" data-section="Registry" data-id="NsCheats.Dump" data-action="dump"><b>Dump registered cheats</b> <span>Logs all registered cheat entries.</span> <i>Debug / Registry. Built in.</i></li>
+    <li data-type="button" data-tab="Debug" data-section="Player" data-id="NsCheats.PlayerLocation" data-log="LogNsCheats: Player location=V(X=1250.00, Y=-340.00, Z=92.15) rotation=R(Y=90.00)"><b>Log player location</b> <span>Logs the first local player's pawn location and rotation.</span> <i>Debug / Player. Built in.</i></li>
+    <li data-type="button" data-tab="Performance" data-section="Stats" data-id="NsCheats.StatFps" data-exec="stat fps"><b>Toggle stat fps</b> <i>Performance / Stats. Built in. Runs <code>stat fps</code>.</i></li>
+    <li data-type="button" data-tab="Performance" data-section="Stats" data-id="NsCheats.StatUnit" data-exec="stat unit"><b>Toggle stat unit</b> <i>Performance / Stats. Built in. Runs <code>stat unit</code>.</i></li>
+    <li data-type="button" data-tab="Economy" data-section="Coins" data-id="Economy.AddCoins" data-var="coins" data-add="1000" data-log="LogTemp: Coins={coins}"><b>Add 1000 coins</b> <i>Economy / Coins. A button.</i></li>
+    <li data-type="toggle" data-tab="Economy" data-section="Coins" data-id="Economy.FreePlay" data-var="freeplay" data-value="false"><b>Free play</b> <span>Items cost nothing.</span> <i>Economy / Coins. A check box.</i></li>
+    <li data-type="debug" data-tab="Economy" data-section="Coins" data-id="Economy.Coins" data-sort="-1" data-var="coins" data-value="250" data-text="{coins} coins"><b>Wallet</b> <span>The coins of the player.</span> <i>Economy / Coins. Debug text.</i></li>
+    <li data-type="float" data-tab="Economy" data-section="Prices" data-id="Economy.PriceScale" data-var="price" data-value="1"><b>Price scale</b> <span>Multiplies all shop prices.</span> <i>Economy / Prices. A number field.</i></li>
+    <li data-type="float" data-tab="Player" data-section="Movement" data-id="Player.WalkSpeed" data-var="speed" data-value="600"><b>Walk speed</b> <span>Max Walk Speed of the character, in cm/s.</span> <i>Player / Movement. A number field.</i></li>
+    <li data-type="toggle" data-tab="Player" data-section="Movement" data-id="Player.God" data-var="god" data-value="false"><b>God mode</b> <span>The player takes no damage.</span> <i>Player / Movement. A check box.</i></li>
+    <li data-type="row" data-tab="Player" data-section="Movement" data-id="Player.TimeScale" data-sort="10"><b>Time scale</b> <span>Sets the global time dilation.</span> <i>Player / Movement. A row of buttons.</i>
+      <ul>
+        <li data-exec="slomo 0.5">0.5x</li>
+        <li data-exec="slomo 1">1x</li>
+        <li data-exec="slomo 2">2x</li>
+      </ul>
+    </li>
+    <li data-type="text" data-tab="Player" data-section="Items" data-id="Player.GiveItem" data-var="item" data-value="Sword" data-log="LogTemp: Gave item {item}"><b>Give item</b> <span>Type an item id, push Enter, then click Run.</span> <i>Player / Items. A text field.</i></li>
+    <li data-type="picker" data-tab="Player" data-section="Items" data-id="Player.Teleport" data-var="spawn" data-value="Camp" data-log="LogTemp: Teleport to {spawn}"><b>Teleport</b> <span>Pick a spawn point, then click Run.</span> <i>Player / Items. A picker.</i>
+      <ul>
+        <li data-value="Start">Start room</li>
+        <li data-value="Camp">Camp</li>
+        <li data-value="BossDoor">Boss door</li>
+      </ul>
+    </li>
+    <li data-type="debug" data-tab="Player" data-section="Items" data-id="Player.WorldTime" data-text="{time} s"><b>World time</b> <span>The window reads debug text when it builds its rows. Click Reload for a new value.</span> <i>Player / Items. Debug text.</i></li>
+  </ul>
+  <p>Example commands: <code>ns.Cheats.Toggle</code>, <code>ns.Cheats.Exec stat fps</code>, <code>ns.Cheats.Dump</code>. The demo game is not real. A set value or an action only changes the demo values and writes to the strip.</p>
+</figure>
