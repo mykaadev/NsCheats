@@ -4,6 +4,7 @@
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "HAL/IConsoleManager.h"
 #include "NsCheatProviderInterface.h"
