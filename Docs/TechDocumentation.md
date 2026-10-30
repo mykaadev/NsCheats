@@ -147,21 +147,3 @@ The `.uplugin` lists no plugin dependencies.
 ## Networking
 
 The plugin does not replicate. Entries, delegates, and the window are local to one game instance.
-
-## Testing
-
-The plugin has no automated tests.
-
-Manual check with the built-in entries:
-
-1. Start PIE in a Development build and run `ns.Cheats.Toggle`. Make sure that the window shows the `Debug` and `Performance` tabs.
-2. In `Performance` > `Stats`, click **Run** on `Toggle stat fps`. Make sure that the FPS stat shows.
-3. Run `ns.Cheats.Dump`. Make sure that the log shows the built-in entries under `LogNsCheats`.
-4. Type `stat` in the search box. Make sure that the `Stats` section shows `Toggle stat fps` and `Toggle stat unit`.
-
-## Change Rules
-
-- Keep the `ns.Cheats.*` command names. Developers and scripts call them by name.
-- Keep the `#if !UE_BUILD_SHIPPING` guards on new public functions that touch the registry or the window.
-- Keep the names of the `Register...Cheat` parameters and of the `RegisterCheats` parameter. Blueprint pins use these names, and a rename breaks the pin links.
-- Keep the `INsCheatProviderInterface` and `UNsCheatsSubsystem` class names. Blueprints that implement or call them store the class names.
