@@ -19,6 +19,7 @@
   <a href="#-requirements">⚙️ Requirements</a> •
   <a href="#-installation">🛠️ Installation</a> •
   <a href="#-getting-started">🚀 Getting Started</a> •
+  <a href="#-entry-types">🧩 Entry Types</a> •
   <a href="#-api">🔧 API</a> •
   <a href="#-limits">🚧 Limits</a> •
   <a href="#-documentation">📚 Documentation</a> •
@@ -32,18 +33,19 @@
 <!-- GH_ONLY_END -->
 
 ## 👀 Summary
-NsCheats is a registry of debug cheats with a built-in window. Game systems register buttons, toggles, values, text fields, pickers, and debug text. Developers open the window and use them during play.
+NsCheats is a registry of debug cheats with a built-in window. Game systems register buttons, toggles, number fields, text fields, pickers, and debug text. A developer opens the window during play and uses the cheats.
 
-NsCheats is for development builds only. In a shipping build, every function does nothing.
+NsCheats is for development builds. In a Shipping build, the registry, the window, and the console commands compile out. NsCheats does not replicate, and it does not give an in-game UMG widget.
 
 ## 📦 Features
-- **Many entry types**: Buttons, toggles, number fields, text fields, pickers, debug text, and button rows.
-- **Fluent C++ builder**: Register a full section of cheats in one chain.
-- **Blueprint support**: Register entries and implement the provider interface in Blueprint.
-- **Automatic providers**: Game instance subsystems and world subsystems register without extra code.
-- **Tabs, sections, and search**: Keep a large set of cheats in order.
-- **Console commands**: Open the window, dump the registry, or run any console command.
-- **Shipping safe**: All public function bodies compile out in shipping builds.
+- **Seven entry types**: Buttons, toggles, number fields, text fields, pickers, debug text, and button rows.
+- **C++ builder**: Register a full section of cheats in one call chain.
+- **Blueprint support**: Register entries, and implement the provider interface, in Blueprint.
+- **Provider discovery**: At start, the subsystem registers the game instance and world subsystems that implement the provider interface and already exist.
+- **Tabs, sections, and search**: The window sorts entries into tabs and sections, with a search box.
+- **Owner cleanup**: Entries of a destroyed owner leave the registry.
+- **Console commands**: Open or close the window, log the registry, or run a console command.
+- **Built-in cheats**: Log the registry, log the player location, and toggle `stat fps` and `stat unit`.
 
 ## ⚙️ Requirements
 Unreal Engine 5.7+
@@ -58,7 +60,9 @@ Unreal Engine 5.7+
 Implement `INsCheatProviderInterface` on the object that owns the cheats:
 
 ```cpp
-void UMyEconomySubsystem::RegisterCheats_Implementation(UNsCheatsSubsystem* const CheatsSubsystem)
+#include "NsCheatsSubsystem.h"
+
+void UMyEconomySubsystem::RegisterCheats_Implementation(UNsCheatsSubsystem* CheatsSubsystem)
 {
     CheatsSubsystem->ForProvider(this, TEXT("Economy"))
         .Section(TEXT("Coins"))
@@ -66,45 +70,40 @@ void UMyEconomySubsystem::RegisterCheats_Implementation(UNsCheatsSubsystem* cons
             FNsCheatExecuteDelegate::CreateUObject(this, &UMyEconomySubsystem::AddDebugCoins))
         .Toggle(TEXT("Economy.FreePlay"), INVTEXT("Free play"),
             FNsCheatGetBoolDelegate::CreateLambda([this]() { return bFreePlay; }),
-            FNsCheatSetBoolDelegate::CreateLambda([this](const bool bValue) { bFreePlay = bValue; }));
+            FNsCheatSetBoolDelegate::CreateLambda([this](bool bValue) { bFreePlay = bValue; }));
 }
 ```
 
-Game instance subsystems register automatically. Actors and components call `RegisterProvider(this)` in `BeginPlay` and `UnregisterProvider(this)` in `EndPlay`.
+Then call `RegisterProvider(this)` on the `UNsCheatsSubsystem` of the game instance. Do this in `BeginPlay` for an actor or a component, and call `UnregisterProvider(this)` in `EndPlay`.
 
 Run `ns.Cheats.Toggle` in the console to open the window.
 
-## 🔧 API
-### Key Classes
-- `UNsCheatsSubsystem` – Game instance subsystem that owns the entries, the providers, the console commands, and the window.
-- `INsCheatProviderInterface` – Interface with `RegisterCheats`, for C++ and Blueprint.
-- `FNsCheatBuilder` – Fluent C++ builder from `ForProvider(Owner, Tab)`.
-- `FNsCheatEntry` – One entry: id, labels, tab, section, sort order, type, owner, and delegates.
-
-### Builder Calls
+## 🧩 Entry Types
 | Builder call | Blueprint call | Row in the window |
 |---|---|---|
-| `Button` | `Register Button Cheat` | A button |
+| `Button` | `Register Button Cheat` | A **Run** button |
 | `Toggle` | `Register Toggle Cheat` | A check box |
 | `Float` | `Register Float Cheat` | A number field |
-| `Text` | `Register Text Cheat` | A text field with an optional run button |
-| `Picker` | `Register Picker Cheat` | A dropdown with an optional refresh |
+| `Text` | `Register Text Cheat` | A text field, with a **Run** button if an action is bound |
+| `Picker` | `Register Picker Cheat` | A dropdown, with a **Run** button if an action is bound |
 | `DebugText` | `Register Debug Text Cheat` | Read-only text |
-| `ButtonRow` | None | A row of small buttons |
+| `ButtonRow` | None | A row of buttons |
 
-### Console Commands
-| Command | Effect |
-|---|---|
-| `ns.Cheats.Open` | Opens the window |
-| `ns.Cheats.Close` | Closes the window |
-| `ns.Cheats.Toggle` | Opens or closes the window |
-| `ns.Cheats.Dump` | Logs all entries |
-| `ns.Cheats.Exec <command>` | Runs a console command |
+## 🔧 API
+- `UNsCheatsSubsystem` – The game instance subsystem that owns the entries, the providers, the console commands, and the window.
+- `INsCheatProviderInterface` – One function, `RegisterCheats(UNsCheatsSubsystem*)`, for C++ and Blueprint.
+- `FNsCheatBuilder` – The C++ builder that `ForProvider(Owner, Tab)` returns.
+- `FNsCheatEntry` – One entry: id, label, description, tab, section, sort order, type, owner, and delegates.
+- `RegisterProvider` / `UnregisterProvider` – Add or remove a provider and its entries.
+- `ExecuteEntry(Id)` – Run the action of an entry from code.
+- `OpenCheatUI` / `CloseCheatUI` / `ToggleCheatUI` – Show or hide the window.
+- `DumpRegisteredCheats` – Log all entries and return the list as a string.
 
 ## 🚧 Limits
-- The window is a separate Slate window, not an in-game widget. It does not work with a gamepad.
-- No networking. A cheat runs on the machine where you click it.
+- The window is a separate Slate window, not a widget in the game viewport.
+- The plugin does not replicate. A cheat runs on the machine where you use it.
 - `ButtonRow` has no Blueprint registration function.
+- Automatic discovery runs one time, at start. Other providers must call `RegisterProvider`.
 
 ## 📚 Documentation
 - [User Guide](https://mykaadev.github.io/plugins/nscheats/user-guide/) – Setup, common tasks, settings, and debug tools.
