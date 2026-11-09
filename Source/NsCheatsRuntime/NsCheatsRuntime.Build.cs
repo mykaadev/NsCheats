@@ -12,12 +12,14 @@ public class NsCheatsRuntime : ModuleRules
         {
             "Core",
             "CoreUObject",
-            "Engine"
+            "DeveloperSettings",
+            "Engine",
+            "InputCore"
         });
 
         PrivateDependencyModuleNames.AddRange(new[]
         {
-            "InputCore",
+            "ApplicationCore",
             "Slate",
             "SlateCore",
             "UMG"

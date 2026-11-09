@@ -115,6 +115,20 @@ public:
     UFUNCTION(BlueprintCallable, Category="NsCheats")
     FString DumpRegisteredCheats();
 
+    /** Save a bug report: a screenshot, the player place, every debug text of the cheat window, and the end of the log. Returns the folder */
+    UFUNCTION(BlueprintCallable, Category="NsCheats")
+    FString SaveReport();
+
+    /** Save a bug report, then open a window for a note about it. The console command is ns.Cheats.Report */
+    UFUNCTION(BlueprintCallable, Category="NsCheats")
+    void OpenReportWindow();
+
+    /** Run the console command of a hotkey in the game world */
+    void RunHotkeyCommand(const FString& Command);
+
+    /** True when the game window of this game instance, or the cheat window, is the active window. Hotkeys work only then */
+    bool IsOwnWindowActive() const;
+
     const TArray<FNsCheatEntry>& GetEntries() const { return Entries; }
 
 private:
@@ -122,6 +136,11 @@ private:
     void RegisterBuiltInCheats();
     void RegisterConsoleCommands();
     void UnregisterConsoleCommands();
+    void RegisterHotkeys();
+    void UnregisterHotkeys();
+
+    /** The last lines of the log file. The log stays open for writing, so the read shares it */
+    static FString ReadLogTail(int32 LineCount);
     TSharedRef<SWidget> BuildCheatUIContent();
     TSharedRef<SWidget> BuildTabBar(const TArray<FName>& Tabs);
     TSharedRef<SWidget> BuildSectionList(const TArray<FName>& Sections);
@@ -155,6 +174,10 @@ private:
 
     TArray<IConsoleObject*> RegisteredConsoleCommands;
     TWeakPtr<SWindow> CheatWindow;
+    TWeakPtr<SWindow> ReportWindow;
+
+    /** Reads the hotkeys of the settings before the game and the menus get the keys */
+    TSharedPtr<class IInputProcessor> HotkeyProcessor;
     TSharedPtr<SBox> CheatContentBox;
     FString SearchFilter;
     FName SelectedTab;

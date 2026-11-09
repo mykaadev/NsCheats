@@ -130,6 +130,7 @@ void UNsCheatsSubsystem::Initialize(FSubsystemCollectionBase& Collection)
     RegisterBuiltInCheats();
     AutoRegisterSubsystemProviders();
     RegisterConsoleCommands();
+    RegisterHotkeys();
 #endif
 }
 
@@ -138,6 +139,11 @@ void UNsCheatsSubsystem::Deinitialize()
 #if !UE_BUILD_SHIPPING
     CloseCheatUI();
     UnregisterConsoleCommands();
+    UnregisterHotkeys();
+    if (TSharedPtr<SWindow> Window = ReportWindow.Pin())
+    {
+        Window->RequestDestroyWindow();
+    }
 #endif
     Super::Deinitialize();
 }
@@ -1318,6 +1324,10 @@ void UNsCheatsSubsystem::RegisterConsoleCommands()
         {
             DumpRegisteredCheats();
         }));
+    });
+    RegisterIfAbsent(TEXT("ns.Cheats.Report"), [&ConsoleManager, this]() -> IConsoleObject*
+    {
+        return ConsoleManager.RegisterConsoleCommand(TEXT("ns.Cheats.Report"), TEXT("Save a bug report to the Saved folder, then open a window for a note."), FConsoleCommandDelegate::CreateUObject(this, &UNsCheatsSubsystem::OpenReportWindow));
     });
     RegisterIfAbsent(TEXT("ns.Cheats.Exec"), [&ConsoleManager, this]() -> IConsoleObject*
     {

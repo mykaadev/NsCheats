@@ -14,8 +14,8 @@ The plugin has no content (`CanContainContent` is `false`). The module class `FN
 
 | Folder | Files |
 |---|---|
-| `Source/NsCheatsRuntime/Public` | `NsCheatsRuntime.h`, `NsCheatsSubsystem.h`, `NsCheatProviderInterface.h`, `NsCheatTypes.h` |
-| `Source/NsCheatsRuntime/Private` | `NsCheatsRuntime.cpp`, `NsCheatsSubsystem.cpp` |
+| `Source/NsCheatsRuntime/Public` | `NsCheatsRuntime.h`, `NsCheatsSubsystem.h`, `NsCheatsSettings.h`, `NsCheatProviderInterface.h`, `NsCheatTypes.h` |
+| `Source/NsCheatsRuntime/Private` | `NsCheatsRuntime.cpp`, `NsCheatsSubsystem.cpp`, `NsCheatsSettings.cpp`, `NsCheatsReport.cpp` (the hotkeys and the bug report) |
 
 ### Main Classes
 
@@ -27,6 +27,9 @@ The plugin has no content (`CanContainContent` is `false`). The module class `FN
 | `FNsCheatEntry` | One entry: `Id`, `DisplayName`, `Description`, `Tab` (default `Debug`), `Category` (default `General`), `SortOrder`, `EntryType`, a weak `Owner`, a native delegate set, a dynamic delegate set, and `InlineActions`. |
 | `ENsCheatEntryType` | `Button`, `Modifier` (float field), `DebugView` (debug text), `Toggle`, `Picker`, `Text`, `ButtonRow`. |
 | `FNsCheatPickerOption` | `Value` (`FName`), `Label`, `Description`. The window shows `Label` and does not show `Description`. |
+| `UNsCheatsSettings` | A `UDeveloperSettings` (`Config=Game`): **Hotkeys**, **Report Folder**, **Report Log Lines**. `GetHotkeyText(Command)` gives the key text of a command, for example `Ctrl+F3`. |
+| `FNsCheatHotkey` | One hotkey: `Key`, `bCtrl`, `bShift`, `bAlt`, `Command`. |
+| `FNsCheatsHotkeyProcessor` | A Slate input preprocessor in `NsCheatsReport.cpp`. It reads each key down before the game and the menus, and runs the command of a matching hotkey. |
 | `FNsCheatInlineAction` | One button of a `ButtonRow`: `Id`, `Label`, `Description` (the tooltip), `ExecuteDelegate`. It is a plain C++ struct. |
 
 The delegates of `FNsCheatEntry` are not `UPROPERTY` members. Only the fields up to `Owner` are visible to reflection.
@@ -63,9 +66,14 @@ Threading: all work runs on the game thread. The plugin starts no tasks or threa
    1. `RegisterBuiltInCheats` adds four entries in the `Debug` and `Performance` tabs.
    2. `AutoRegisterSubsystemProviders` calls `RegisterProvider` on each game instance subsystem in the collection at that time, except itself. Then it does the same for each world subsystem of `GetWorld()`, if there is a world.
    3. `RegisterConsoleCommands` registers the `ns.Cheats.*` commands.
+   4. `RegisterHotkeys` registers the hotkey preprocessor with Slate.
 3. `RegisterProvider` ignores a null object, an object that does not implement `INsCheatProviderInterface`, and an object it already has. Else it stores a weak pointer, calls `Execute_RegisterCheats`, and refreshes the window.
 4. Entries with a destroyed owner stay in the list until the next `CleanInvalidEntries`. `ExecuteEntry`, `DumpRegisteredCheats`, and each window build call it. An entry with no owner is never stale.
-5. `Deinitialize` (not in Shipping) closes the window and unregisters the console commands that this instance registered.
+5. `Deinitialize` (not in Shipping) closes the window and the report window, unregisters the console commands that this instance registered, and unregisters the hotkey preprocessor.
+
+Each game instance registers its own hotkey preprocessor. The preprocessor runs a hotkey only when `IsOwnWindowActive` is true: the active window is the game window of its game instance, or the cheat window. With more than one PIE client, the key goes to the client whose window is active.
+
+`SaveReport` requests the screenshot, writes `report.txt` and `log.txt`, and copies the folder path to the clipboard. `ReadLogTail` flushes the log and reads at most the last 1 MB of the log file, with shared write access, because the log stays open.
 
 Game instance subsystems start in an order that the engine sets. Discovery only sees the subsystems that started before `UNsCheatsSubsystem`. A provider subsystem that must be found calls `Collection.InitializeDependency<UNsCheatsSubsystem>()` and then `RegisterProvider(this)`.
 
@@ -81,6 +89,7 @@ The window is an `SWindow` that `FSlateApplication::AddWindow` adds. `CheatWindo
 - `ExecuteEntry` returns `false`.
 - `DumpRegisteredCheats` logs and returns only the header line.
 - No console commands exist.
+- No hotkey preprocessor exists, and `SaveReport` returns an empty path.
 
 Provider code needs no `#if` guards to compile in Shipping.
 
@@ -131,7 +140,9 @@ The window picks a widget in `BuildCheatEntryWidget`: `Picker`, `Text`, and `But
 | `Engine` | Public module | `UGameInstanceSubsystem`, `UWorldSubsystem`, `GEngine->Exec`. |
 | `Slate` | Private module | `SWindow`, buttons, and the other window widgets. |
 | `SlateCore` | Private module | Slate base types and `FCoreStyle` fonts. |
-| `InputCore` | Private module | Listed in `Build.cs`. The source includes no `InputCore` header. |
+| `InputCore` | Public module | `FKey` in `FNsCheatHotkey`. |
+| `DeveloperSettings` | Public module | `UNsCheatsSettings`. |
+| `ApplicationCore` | Private module | The clipboard copy of the report path. |
 | `UMG` | Private module | Listed in `Build.cs`. The source includes no `UMG` header. |
 
 The `.uplugin` lists no plugin dependencies.

@@ -158,13 +158,41 @@ The window sorts tabs and sections by name. In a section, it sorts entries by `S
 2. Call `UnregisterCheatsByOwner(Owner)` to remove all entries of one owner.
 3. Call `UnregisterProvider(Provider)` to remove a provider and all its entries.
 
+### Save a bug report
+
+1. Run `ns.Cheats.Report`, or press its hotkey.
+2. NsCheats saves a folder `Saved/<Report Folder>/<date and time>/` with `screenshot.png`, `report.txt`, and `log.txt`, and copies the folder path to the clipboard.
+3. A small window opens. Write what happened, and click **Save the note** to add `note.txt`.
+
+`report.txt` has the map, the game time, the place of the player, and every debug text of the cheat window. So a provider puts its state into each report with one `DebugText` entry.
+
 ### Run a console command from the window or a script
 
 1. Run `ns.Cheats.Exec <command>`, for example `ns.Cheats.Exec stat fps`.
 
 ## Settings
 
-NsCheats has no project settings. These are the values of a new entry.
+### Project Settings > Ns Cheats
+
+A game sets these in `DefaultGame.ini`, section `[/Script/NsCheatsRuntime.NsCheatsSettings]`.
+
+| Setting | Default | Effect |
+|---|---|---|
+| **Hotkeys** | Empty | Key chords (**Key**, **Ctrl**, **Shift**, **Alt**) that run a console command in the game world. They work while the game window or the cheat window is active, also when a menu or a dialogue has the input. |
+| **Report Folder** | `QA` | The folder of bug reports, under the `Saved` folder of the project. |
+| **Report Log Lines** | 300 | The number of log lines that a bug report keeps. |
+
+Example:
+
+```ini
+[/Script/NsCheatsRuntime.NsCheatsSettings]
++Hotkeys=(Key=F1,bCtrl=True,Command="ns.Cheats.Toggle")
++Hotkeys=(Key=F12,bCtrl=True,Command="ns.Cheats.Report")
+```
+
+In Play In Editor, F1 to F5 change the view mode, F8 ejects the player, and F9 takes a screenshot. Use a modifier key with them.
+
+These are the values of a new entry.
 
 ### Builder (`ForProvider`)
 
@@ -206,6 +234,7 @@ NsCheats has no project settings. These are the values of a new entry.
 | `ns.Cheats.Toggle` | Opens or closes the window. |
 | `ns.Cheats.Dump` | Logs all entries as `- [Tab/Section] Label (Id)`. |
 | `ns.Cheats.Exec <command>` | Runs a console command in the game world. |
+| `ns.Cheats.Report` | Saves a bug report and opens the note window. |
 
 ### Built-in entries
 
@@ -218,7 +247,7 @@ NsCheats has no project settings. These are the values of a new entry.
 
 ### Log
 
-The log category is `LogNsCheats`. The window has a **Reload** button that builds all rows again.
+The log categories are `LogNsCheats` and `LogNsCheatsReport`. `LogNsCheatsReport` writes each hotkey command and the folder of each report. The window has a **Reload** button that builds all rows again.
 
 ## Troubleshooting
 
@@ -240,3 +269,5 @@ The log category is `LogNsCheats`. The window has a **Reload** button that build
 - `ButtonRow` has no Blueprint registration function.
 - `ExecuteEntry` does not run a `ButtonRow` button or change a toggle.
 - With more than one PIE client, the console commands control the window of the first game instance that started.
+- A hotkey works only while the game window of its game instance or the cheat window is active. In an editor panel the key does nothing.
+- The screenshot of a report comes one frame later. A report window does not show in it.
