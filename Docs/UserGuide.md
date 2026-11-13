@@ -166,6 +166,14 @@ The window sorts tabs and sections by name. In a section, it sorts entries by `S
 
 `report.txt` has the map, the game time, the place of the player, and every debug text of the cheat window. So a provider puts its state into each report with one `DebugText` entry.
 
+### Open the menu inside the game
+
+1. In `DefaultGame.ini`, section `[/Script/NsCheatsRuntime.NsCheatsSettings]`, set `DisplayMode=InGame`.
+2. Give `ns.Cheats.Toggle` a hotkey, for example `+Hotkeys=(Key=F1,bCtrl=True,Command="ns.Cheats.Toggle")`.
+3. In the game, press the hotkey. The menu opens as a panel on the right side of the game view.
+
+The game keeps running behind the panel. The mouse cursor shows, and the game still gets the input that the panel does not use. Esc or the hotkey closes the panel, and the cursor and the input go back as they were. With no game view, the menu opens as a window.
+
 ### Pick a point in the world
 
 A cheat can ask the person to pick a point, for example a goal or a teleport place.
@@ -198,6 +206,12 @@ A game sets these in `DefaultGame.ini`, section `[/Script/NsCheatsRuntime.NsChea
 | **Hotkeys** | Empty | Key chords (**Key**, **Ctrl**, **Shift**, **Alt**) that run a console command in the game world. They work while the game window or the cheat window is active, also when a menu or a dialogue has the input. |
 | **Report Folder** | `QA` | The folder of bug reports, under the `Saved` folder of the project. |
 | **Report Log Lines** | 300 | The number of log lines that a bug report keeps. |
+| **Display Mode** | Window | Window: a separate window. In Game: a panel inside the game view. |
+| **In Game Panel Width** | 560 | The width of the in-game panel. |
+| **In Game Panel Margin** | 16 | The space around the in-game panel, and inside it. |
+| **In Game Panel Color** | Near black, alpha 0.9 | The background of the in-game panel. The alpha lets the game show through. |
+| **In Game Panel Z Order** | 1000 | The layer of the panel in the game view. A higher layer covers the game widgets. |
+| **Pause While Open** | Off | Pauses the game while the in-game panel is open. |
 | **Pick Marker Color** | Yellow (255, 200, 0) | The color of the marker of the point picker. |
 | **Pick Marker Radius** | 15 cm | The radius of the marker of the point picker. |
 | **Pick Trace Distance** | 1000 m | How far the point picker looks along the view center. |
@@ -284,7 +298,8 @@ The log categories are `LogNsCheats` and `LogNsCheatsReport`. `LogNsCheatsReport
 
 ## Limits
 
-- The window is a separate Slate window, not a widget in the game viewport.
+- In Window mode, the menu is a separate Slate window. In In Game mode, it is a panel in the game view of the first game instance.
+- When the in-game panel closes, the input mode becomes Game Only, or Game And UI when the cursor showed before the panel opened. A game that sets its own input mode for a menu sets it again after the panel closes.
 - The plugin does not replicate. A cheat runs on the machine where you use it. A server cheat needs a server RPC in your game code.
 - `ButtonRow` has no Blueprint registration function.
 - `ExecuteEntry` does not run a `ButtonRow` button or change a toggle.

@@ -28,6 +28,16 @@ struct NSCHEATSRUNTIME_API FNsCheatHotkey
     FString Command;
 };
 
+/** Where the cheat menu opens */
+UENUM(BlueprintType)
+enum class ENsCheatsDisplayMode : uint8
+{
+    /** A separate window next to the game */
+    Window,
+    /** A panel inside the game view. The game keeps running behind it */
+    InGame
+};
+
 /** The settings of NsCheats. A game sets its hotkeys in DefaultGame.ini */
 UCLASS(Config=Game, DefaultConfig, meta=(DisplayName="Ns Cheats"))
 class NSCHEATSRUNTIME_API UNsCheatsSettings : public UDeveloperSettings
@@ -52,6 +62,30 @@ public:
     /** The number of log lines that a bug report keeps */
     UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Bug Report", meta=(ClampMin="0"))
     int32 ReportLogLines;
+
+    /** Where the cheat menu opens: a separate window, or a panel inside the game view */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display")
+    ENsCheatsDisplayMode DisplayMode;
+
+    /** The width of the in-game panel */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display", meta=(ClampMin="200.0", EditCondition="DisplayMode == ENsCheatsDisplayMode::InGame"))
+    float InGamePanelWidth;
+
+    /** The space between the in-game panel and the edges of the game view, and inside the panel */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display", meta=(ClampMin="0.0", EditCondition="DisplayMode == ENsCheatsDisplayMode::InGame"))
+    float InGamePanelMargin;
+
+    /** The background color of the in-game panel. The alpha lets the game show through */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display", meta=(EditCondition="DisplayMode == ENsCheatsDisplayMode::InGame"))
+    FLinearColor InGamePanelColor;
+
+    /** The layer of the in-game panel in the game view. A higher layer covers the game widgets */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display", meta=(EditCondition="DisplayMode == ENsCheatsDisplayMode::InGame"))
+    int32 InGamePanelZOrder;
+
+    /** Pauses the game while the in-game panel is open */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Display", meta=(EditCondition="DisplayMode == ENsCheatsDisplayMode::InGame"))
+    bool bPauseWhileOpen;
 
     /** The color of the marker of the point picker */
     UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Point Picker")

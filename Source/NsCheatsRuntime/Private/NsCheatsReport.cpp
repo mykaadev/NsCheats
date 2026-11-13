@@ -49,6 +49,13 @@ public:
             return false;
         }
 
+        // Esc closes the in-game panel before the game sees the key, so it does not also open a pause menu
+        if (InKeyEvent.GetKey() == EKeys::Escape && Subsystem->IsInGamePanelOpen())
+        {
+            Subsystem->CloseCheatUI();
+            return true;
+        }
+
         for (const FNsCheatHotkey& Hotkey : GetDefault<UNsCheatsSettings>()->Hotkeys)
         {
             if (Hotkey.Key == InKeyEvent.GetKey()

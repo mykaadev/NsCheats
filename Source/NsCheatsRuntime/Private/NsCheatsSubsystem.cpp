@@ -3,6 +3,10 @@
 #include "DebugCameraManager.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
+#include "Engine/GameViewportClient.h"
+#include "Kismet/GameplayStatics.h"
+#include "NsCheatsSettings.h"
+#include "Styling/CoreStyle.h"
 #include "Engine/World.h"
 #include "Framework/Application/SlateApplication.h"
 #include "GameFramework/Pawn.h"
@@ -21,6 +25,7 @@
 #include "Widgets/Layout/SBox.h"
 #include "Widgets/Layout/SScrollBox.h"
 #include "Widgets/Layout/SSeparator.h"
+#include "Widgets/Layout/SWrapBox.h"
 #include "Widgets/SWindow.h"
 #include "Widgets/Text/STextBlock.h"
 
@@ -348,6 +353,16 @@ void UNsCheatsSubsystem::OpenCheatUI()
         CheatWindow.Pin()->BringToFront();
         return;
     }
+    if (InGamePanel.IsValid())
+    {
+        return;
+    }
+
+    // With no game view, for example in a dedicated server, the menu falls back to the window
+    if (GetDefault<UNsCheatsSettings>()->DisplayMode == ENsCheatsDisplayMode::InGame && OpenInGamePanel())
+    {
+        return;
+    }
 
     TSharedRef<SWindow> Window = SNew(SWindow)
         .Title(FText::FromString("NsCheats"))
@@ -391,7 +406,7 @@ bool UNsCheatsSubsystem::PickWorldPoint(FNsCheatPointPickedDelegate OnPicked)
     }
 
     // The window closes so the game view gets the mouse, and opens again when the pick ends
-    const bool bReopen = CheatWindow.IsValid();
+    const bool bReopen = IsCheatUIOpen();
     CloseCheatUI();
     FSlateApplication::Get().SetAllUserFocusToGameViewport();
     TWeakObjectPtr<UNsCheatsSubsystem> WeakThis(this);
@@ -409,9 +424,110 @@ bool UNsCheatsSubsystem::PickWorldPoint(FNsCheatPointPickedDelegate OnPicked)
 #endif
 }
 
+bool UNsCheatsSubsystem::OpenInGamePanel()
+{
+#if !UE_BUILD_SHIPPING
+    UGameViewportClient* const Viewport = GetGameInstance() != nullptr ? GetGameInstance()->GetGameViewportClient() : nullptr;
+    if (Viewport == nullptr)
+    {
+        return false;
+    }
+
+    const UNsCheatsSettings* const Settings = GetDefault<UNsCheatsSettings>();
+    TSharedRef<SWidget> Panel = SNew(SBox)
+        .HAlign(HAlign_Right)
+        .VAlign(VAlign_Fill)
+        .Padding(Settings->InGamePanelMargin)
+        [
+            SNew(SBox)
+            .WidthOverride(Settings->InGamePanelWidth)
+            [
+                SNew(SBorder)
+                .BorderImage(FCoreStyle::Get().GetBrush(TEXT("GenericWhiteBox")))
+                .BorderBackgroundColor(Settings->InGamePanelColor)
+                .Padding(Settings->InGamePanelMargin * 0.5f)
+                [
+                    SAssignNew(CheatContentBox, SBox)
+                    [
+                        BuildCheatUIContent()
+                    ]
+                ]
+            ]
+        ];
+    Viewport->AddViewportWidgetContent(Panel, Settings->InGamePanelZOrder);
+    InGamePanel = Panel;
+    InGameViewport = Viewport;
+
+    // The game keeps the input that the panel does not use, so the player can still drive and the game keeps running
+    UWorld* const World = GetGameInstance()->GetWorld();
+    if (APlayerController* const Controller = World != nullptr ? World->GetFirstPlayerController() : nullptr)
+    {
+        bCursorShownBeforePanel = Controller->bShowMouseCursor;
+        Controller->bShowMouseCursor = true;
+        FInputModeGameAndUI InputMode;
+        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+        InputMode.SetHideCursorDuringCapture(false);
+        Controller->SetInputMode(InputMode);
+    }
+    if (Settings->bPauseWhileOpen && World != nullptr && !UGameplayStatics::IsGamePaused(World))
+    {
+        bPausedByPanel = UGameplayStatics::SetGamePaused(World, true);
+    }
+    return true;
+#else
+    return false;
+#endif
+}
+
+void UNsCheatsSubsystem::CloseInGamePanel()
+{
+#if !UE_BUILD_SHIPPING
+    if (!InGamePanel.IsValid())
+    {
+        return;
+    }
+    if (UGameViewportClient* const Viewport = InGameViewport.Get())
+    {
+        Viewport->RemoveViewportWidgetContent(InGamePanel.ToSharedRef());
+    }
+    InGamePanel.Reset();
+    InGameViewport.Reset();
+
+    // The cursor and the input go back as they were. A game that showed a cursor before keeps its menu input
+    UWorld* const World = GetGameInstance() != nullptr ? GetGameInstance()->GetWorld() : nullptr;
+    if (APlayerController* const Controller = World != nullptr ? World->GetFirstPlayerController() : nullptr)
+    {
+        Controller->bShowMouseCursor = bCursorShownBeforePanel;
+        if (bCursorShownBeforePanel)
+        {
+            Controller->SetInputMode(FInputModeGameAndUI());
+        }
+        else
+        {
+            Controller->SetInputMode(FInputModeGameOnly());
+        }
+    }
+    if (bPausedByPanel && World != nullptr)
+    {
+        UGameplayStatics::SetGamePaused(World, false);
+    }
+    bPausedByPanel = false;
+    if (FSlateApplication::IsInitialized())
+    {
+        FSlateApplication::Get().SetAllUserFocusToGameViewport();
+    }
+#endif
+}
+
+bool UNsCheatsSubsystem::IsCheatUIOpen() const
+{
+    return CheatWindow.IsValid() || InGamePanel.IsValid();
+}
+
 void UNsCheatsSubsystem::CloseCheatUI()
 {
 #if !UE_BUILD_SHIPPING
+    CloseInGamePanel();
     if (const TSharedPtr<SWindow> Window = CheatWindow.Pin())
     {
         Window->RequestDestroyWindow();
@@ -424,7 +540,7 @@ void UNsCheatsSubsystem::CloseCheatUI()
 void UNsCheatsSubsystem::ToggleCheatUI()
 {
 #if !UE_BUILD_SHIPPING
-    if (CheatWindow.IsValid())
+    if (IsCheatUIOpen())
     {
         CloseCheatUI();
     }
@@ -601,11 +717,12 @@ TSharedRef<SWidget> UNsCheatsSubsystem::BuildCheatUIContent()
 TSharedRef<SWidget> UNsCheatsSubsystem::BuildTabBar(const TArray<FName>& Tabs)
 {
 #if !UE_BUILD_SHIPPING
-    TSharedRef<SHorizontalBox> TabBar = SNew(SHorizontalBox);
+    // The tabs wrap to a new row when the menu is narrow, for example the in-game panel
+    TSharedRef<SWrapBox> TabBar = SNew(SWrapBox).UseAllottedSize(true);
     for (const FName Tab : Tabs)
     {
         const bool bSelected = Tab == SelectedTab;
-        TabBar->AddSlot().AutoWidth().Padding(0.0f, 0.0f, 6.0f, 0.0f)
+        TabBar->AddSlot().Padding(0.0f, 0.0f, 6.0f, 6.0f)
         [
             SNew(SButton)
             .ButtonColorAndOpacity(bSelected ? FLinearColor(0.16f, 0.30f, 0.52f, 1.0f) : FLinearColor(0.06f, 0.07f, 0.08f, 1.0f))
@@ -623,7 +740,7 @@ TSharedRef<SWidget> UNsCheatsSubsystem::BuildTabBar(const TArray<FName>& Tabs)
 
     if (Tabs.Num() == 0)
     {
-        TabBar->AddSlot().AutoWidth()
+        TabBar->AddSlot()
         [
             SNew(STextBlock)
             .Text(FText::FromString("No cheats registered."))

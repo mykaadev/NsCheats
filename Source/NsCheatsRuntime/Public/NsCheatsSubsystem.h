@@ -127,6 +127,13 @@ public:
     /** Starts a free camera that picks a point in the world. The cheat window closes during the pick and opens again after it. The delegate runs one time: true with the point, or false on Esc. Returns false when no pick can start */
     bool PickWorldPoint(FNsCheatPointPickedDelegate OnPicked);
 
+    /** True while the cheat menu is open, as a window or as an in-game panel */
+    UFUNCTION(BlueprintPure, Category="NsCheats")
+    bool IsCheatUIOpen() const;
+
+    /** True while the in-game panel is open. Esc closes it */
+    bool IsInGamePanelOpen() const { return InGamePanel.IsValid(); }
+
     /** Run the console command of a hotkey in the game world */
     void RunHotkeyCommand(const FString& Command);
 
@@ -142,6 +149,12 @@ private:
     void UnregisterConsoleCommands();
     void RegisterHotkeys();
     void UnregisterHotkeys();
+
+    /** Opens the cheat menu as a panel inside the game view, shows the mouse cursor, and gives the panel the input that the game does not use. Returns false when there is no game view */
+    bool OpenInGamePanel();
+
+    /** Removes the in-game panel and gives the cursor and the input back to the game */
+    void CloseInGamePanel();
 
     /** The last lines of the log file. The log stays open for writing, so the read shares it */
     static FString ReadLogTail(int32 LineCount);
@@ -178,6 +191,18 @@ private:
 
     TArray<IConsoleObject*> RegisteredConsoleCommands;
     TWeakPtr<SWindow> CheatWindow;
+
+    /** The in-game panel while it is open */
+    TSharedPtr<SWidget> InGamePanel;
+
+    /** The game view that holds the in-game panel */
+    TWeakObjectPtr<class UGameViewportClient> InGameViewport;
+
+    /** The mouse cursor state of the player before the in-game panel opened */
+    bool bCursorShownBeforePanel = false;
+
+    /** True when the in-game panel paused the game, so that only it unpauses */
+    bool bPausedByPanel = false;
     TWeakPtr<SWindow> ReportWindow;
 
     /** Reads the hotkeys of the settings before the game and the menus get the keys */
