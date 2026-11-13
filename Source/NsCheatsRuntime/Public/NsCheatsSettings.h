@@ -52,4 +52,16 @@ public:
     /** The number of log lines that a bug report keeps */
     UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Bug Report", meta=(ClampMin="0"))
     int32 ReportLogLines;
+
+    /** The color of the marker of the point picker */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Point Picker")
+    FColor PickMarkerColor;
+
+    /** The radius of the marker of the point picker */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Point Picker", meta=(ClampMin="1.0", Units="cm"))
+    float PickMarkerRadius;
+
+    /** How far the point picker looks along the view center */
+    UPROPERTY(Config, EditAnywhere, BlueprintReadOnly, Category="Point Picker", meta=(ClampMin="100.0", Units="cm"))
+    float PickTraceDistance;
 };

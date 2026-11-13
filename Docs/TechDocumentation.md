@@ -27,9 +27,10 @@ The plugin has no content (`CanContainContent` is `false`). The module class `FN
 | `FNsCheatEntry` | One entry: `Id`, `DisplayName`, `Description`, `Tab` (default `Debug`), `Category` (default `General`), `SortOrder`, `EntryType`, a weak `Owner`, a native delegate set, a dynamic delegate set, and `InlineActions`. |
 | `ENsCheatEntryType` | `Button`, `Modifier` (float field), `DebugView` (debug text), `Toggle`, `Picker`, `Text`, `ButtonRow`. |
 | `FNsCheatPickerOption` | `Value` (`FName`), `Label`, `Description`. The window shows `Label` and does not show `Description`. |
-| `UNsCheatsSettings` | A `UDeveloperSettings` (`Config=Game`): **Hotkeys**, **Report Folder**, **Report Log Lines**. `GetHotkeyText(Command)` gives the key text of a command, for example `Ctrl+F3`. |
+| `UNsCheatsSettings` | A `UDeveloperSettings` (`Config=Game`): **Hotkeys**, **Report Folder**, **Report Log Lines**, and the marker of the point picker. `GetHotkeyText(Command)` gives the key text of a command, for example `Ctrl+F3`. |
 | `FNsCheatHotkey` | One hotkey: `Key`, `bCtrl`, `bShift`, `bAlt`, `Command`. |
 | `FNsCheatsHotkeyProcessor` | A Slate input preprocessor in `NsCheatsReport.cpp`. It reads each key down before the game and the menus, and runs the command of a matching hotkey. |
+| `ANsCheatPointPicker` | An `ADebugCameraController` that picks a point. `PickWorldPoint` sets it as the class of `FDebugCameraManager` for one call, enables the debug camera, and gives it the delegate. It draws a marker in `PlayerTick`, picks in `Select`, cancels on the `DebugCamera_Unselect` action (Esc), and disables the debug camera before the delegate runs. With no pick in progress it works as the plain debug camera. |
 | `FNsCheatInlineAction` | One button of a `ButtonRow`: `Id`, `Label`, `Description` (the tooltip), `ExecuteDelegate`. It is a plain C++ struct. |
 
 The delegates of `FNsCheatEntry` are not `UPROPERTY` members. Only the fields up to `Owner` are visible to reflection.

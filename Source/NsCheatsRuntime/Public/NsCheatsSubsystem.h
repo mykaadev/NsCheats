@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "NsCheatTypes.h"
+#include "NsCheatPointPicker.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "NsCheatsSubsystem.generated.h"
 
@@ -122,6 +123,9 @@ public:
     /** Save a bug report, then open a window for a note about it. The console command is ns.Cheats.Report */
     UFUNCTION(BlueprintCallable, Category="NsCheats")
     void OpenReportWindow();
+
+    /** Starts a free camera that picks a point in the world. The cheat window closes during the pick and opens again after it. The delegate runs one time: true with the point, or false on Esc. Returns false when no pick can start */
+    bool PickWorldPoint(FNsCheatPointPickedDelegate OnPicked);
 
     /** Run the console command of a hotkey in the game world */
     void RunHotkeyCommand(const FString& Command);

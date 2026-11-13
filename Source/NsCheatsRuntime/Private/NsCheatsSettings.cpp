@@ -3,6 +3,9 @@
 UNsCheatsSettings::UNsCheatsSettings()
     : ReportFolder(TEXT("QA"))
     , ReportLogLines(300)
+    , PickMarkerColor(FColor(255, 200, 0))
+    , PickMarkerRadius(15.f)
+    , PickTraceDistance(100000.f)
 {
 }
 

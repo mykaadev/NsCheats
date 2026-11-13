@@ -1,5 +1,6 @@
 #include "NsCheatsSubsystem.h"
 
+#include "DebugCameraManager.h"
 #include "Engine/Engine.h"
 #include "Engine/GameInstance.h"
 #include "Engine/World.h"
@@ -360,6 +361,51 @@ void UNsCheatsSubsystem::OpenCheatUI()
 
     CheatWindow = Window;
     FSlateApplication::Get().AddWindow(Window);
+#endif
+}
+
+bool UNsCheatsSubsystem::PickWorldPoint(FNsCheatPointPickedDelegate OnPicked)
+{
+#if !UE_BUILD_SHIPPING
+    UWorld* const World = GetGameInstance() != nullptr ? GetGameInstance()->GetWorld() : nullptr;
+    APlayerController* const Controller = World != nullptr ? World->GetFirstPlayerController() : nullptr;
+    FDebugCameraManager& CameraManager = FDebugCameraManager::Get();
+    if (Controller == nullptr || CameraManager.IsDebugCameraActive(Controller))
+    {
+        UE_LOG(LogNsCheats, Warning, TEXT("PickWorldPoint needs a playing world with no active debug camera"));
+        return false;
+    }
+
+    // The manager spawns the camera of its class one time for each player, so the picker class is set only for this call
+    const TSubclassOf<ADebugCameraController> PreviousClass = CameraManager.DebugCameraControllerClass;
+    CameraManager.DebugCameraControllerClass = ANsCheatPointPicker::StaticClass();
+    CameraManager.EnableDebugCamera(Controller);
+    CameraManager.DebugCameraControllerClass = PreviousClass;
+    ANsCheatPointPicker* const Picker = Cast<ANsCheatPointPicker>(CameraManager.GetCameraController(Controller));
+    if (Picker == nullptr)
+    {
+        // A plain debug camera of an earlier ToggleDebugCamera stays with the player, so the picker cannot spawn
+        CameraManager.DisableDebugCamera(Controller);
+        UE_LOG(LogNsCheats, Warning, TEXT("PickWorldPoint found a plain debug camera on the player. Restart the game to use the picker"));
+        return false;
+    }
+
+    // The window closes so the game view gets the mouse, and opens again when the pick ends
+    const bool bReopen = CheatWindow.IsValid();
+    CloseCheatUI();
+    FSlateApplication::Get().SetAllUserFocusToGameViewport();
+    TWeakObjectPtr<UNsCheatsSubsystem> WeakThis(this);
+    Picker->StartPick(Controller, FNsCheatPointPickedDelegate::CreateLambda([WeakThis, bReopen, OnPicked](const bool bPicked, const FVector& Point)
+    {
+        OnPicked.ExecuteIfBound(bPicked, Point);
+        if (bReopen && WeakThis.IsValid())
+        {
+            WeakThis->OpenCheatUI();
+        }
+    }));
+    return true;
+#else
+    return false;
 #endif
 }
 

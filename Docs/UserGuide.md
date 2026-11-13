@@ -166,6 +166,23 @@ The window sorts tabs and sections by name. In a section, it sorts entries by `S
 
 `report.txt` has the map, the game time, the place of the player, and every debug text of the cheat window. So a provider puts its state into each report with one `DebugText` entry.
 
+### Pick a point in the world
+
+A cheat can ask the person to pick a point, for example a goal or a teleport place.
+
+```cpp
+Cheats->PickWorldPoint(FNsCheatPointPickedDelegate::CreateLambda([](const bool bPicked, const FVector& Point)
+{
+    // bPicked is false when the person presses Esc
+}));
+```
+
+1. A free camera opens. The game keeps running, and the player keeps the pawn.
+2. Fly with the mouse and WASD. A marker shows where the view center meets the world.
+3. Left click picks the point. Esc cancels. The view goes back to the player.
+
+The cheat window closes during the pick and opens again after it.
+
 ### Run a console command from the window or a script
 
 1. Run `ns.Cheats.Exec <command>`, for example `ns.Cheats.Exec stat fps`.
@@ -181,6 +198,9 @@ A game sets these in `DefaultGame.ini`, section `[/Script/NsCheatsRuntime.NsChea
 | **Hotkeys** | Empty | Key chords (**Key**, **Ctrl**, **Shift**, **Alt**) that run a console command in the game world. They work while the game window or the cheat window is active, also when a menu or a dialogue has the input. |
 | **Report Folder** | `QA` | The folder of bug reports, under the `Saved` folder of the project. |
 | **Report Log Lines** | 300 | The number of log lines that a bug report keeps. |
+| **Pick Marker Color** | Yellow (255, 200, 0) | The color of the marker of the point picker. |
+| **Pick Marker Radius** | 15 cm | The radius of the marker of the point picker. |
+| **Pick Trace Distance** | 1000 m | How far the point picker looks along the view center. |
 
 Example:
 
@@ -271,3 +291,4 @@ The log categories are `LogNsCheats` and `LogNsCheatsReport`. `LogNsCheatsReport
 - With more than one PIE client, the console commands control the window of the first game instance that started.
 - A hotkey works only while the game window of its game instance or the cheat window is active. In an editor panel the key does nothing.
 - The screenshot of a report comes one frame later. A report window does not show in it.
+- The point picker uses the engine debug camera. After a `ToggleDebugCamera` in the same play session, a plain debug camera stays with the player, and the picker cannot start. Restart the play session.
