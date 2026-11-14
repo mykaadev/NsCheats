@@ -24,6 +24,7 @@ The plugin has no content (`CanContainContent` is `false`). The module class `FN
 | `UNsCheatsSubsystem` | A `UGameInstanceSubsystem`. It owns the entry list, the provider list, the console commands, and the window. It builds all Slate widgets. |
 | `FNsCheatBuilder` | A C++ builder that `ForProvider(Owner, Tab)` returns. It holds the subsystem, the owner, the tab, and the current section. Each call makes one `FNsCheatEntry` and sends it to `RegisterCheatEntry`. |
 | `INsCheatProviderInterface` | A `BlueprintType` interface with one `BlueprintNativeEvent`, `RegisterCheats(UNsCheatsSubsystem*)`. |
+| `UNsCheatWorldSubsystem` | An abstract `UTickableWorldSubsystem` that implements `INsCheatProviderInterface`. `ShouldCreateSubsystem` returns false in Shipping. `Initialize` calls `RegisterProvider(this)` on the NsCheats subsystem of the game instance, and `Deinitialize` calls `UnregisterProvider(this)`. `IsTickable` returns false, so a child ticks only when it overrides `IsTickable`. `GetCheatsSubsystem()` is protected. |
 | `FNsCheatEntry` | One entry: `Id`, `DisplayName`, `Description`, `Tab` (default `Debug`), `Category` (default `General`), `SortOrder`, `EntryType`, a weak `Owner`, a native delegate set, a dynamic delegate set, and `InlineActions`. |
 | `ENsCheatEntryType` | `Button`, `Modifier` (float field), `DebugView` (debug text), `Toggle`, `Picker`, `Text`, `ButtonRow`. |
 | `FNsCheatPickerOption` | `Value` (`FName`), `Label`, `Description`. The window shows `Label` and does not show `Description`. |
@@ -105,6 +106,8 @@ void RegisterCheats(UNsCheatsSubsystem* CheatsSubsystem);
 ```
 
 C++ classes override `RegisterCheats_Implementation`. Blueprint classes implement the `Register Cheats` event.
+
+A world subsystem can derive from `UNsCheatWorldSubsystem` in place of the interface. The base class registers and unregisters the provider, and it does not exist in Shipping.
 
 ### Builder calls
 

@@ -92,6 +92,24 @@ void UMyEconomySubsystem::RegisterCheats_Implementation(UNsCheatsSubsystem* Chea
 
 ## Common Tasks
 
+### Register cheats from a world subsystem
+
+1. Make a child class of `UNsCheatWorldSubsystem`.
+2. Override `RegisterCheats_Implementation` and add the entries with `ForProvider`.
+
+The base class registers the provider when the world starts and unregisters it when the world ends. It does not exist in Shipping, so the cheat code needs no `ShouldCreateSubsystem` override. The base does not tick. A child that draws each frame overrides `Tick` and `IsTickable`, and returns true from `IsTickable` only while it must draw.
+
+```cpp
+UCLASS()
+class UMyWorldCheats : public UNsCheatWorldSubsystem
+{
+    GENERATED_BODY()
+
+public:
+    virtual void RegisterCheats_Implementation(UNsCheatsSubsystem* CheatsSubsystem) override;
+};
+```
+
 ### Register cheats from an actor or a component
 
 1. Implement `INsCheatProviderInterface` on the actor or the component.
