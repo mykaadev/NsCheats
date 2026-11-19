@@ -626,7 +626,7 @@ void UNsCheatsSubsystem::AutoRegisterSubsystemProviders()
         return;
     }
 
-    // Subsystems are the only providers auto-discovered. Actors, components, and transient Blueprint objects opt in with RegisterProvider.
+    // Subsystems are the only providers auto-discovered. Actors, components, and transient Blueprint objects opt in with RegisterProvider
     GameInstance->ForEachSubsystem<UGameInstanceSubsystem>([this](UGameInstanceSubsystem* Subsystem)
     {
         if (Subsystem != this)
@@ -1459,7 +1459,7 @@ void UNsCheatsSubsystem::RegisterConsoleCommands()
     const auto RegisterIfAbsent = [this, &ConsoleManager](const TCHAR* Name, TFunction<IConsoleObject*()> Register)
     {
         // Console commands are global, but PIE can create more than one game instance.
-        // Only the subsystem that creates a command owns its handle and can unregister it.
+        // Only the subsystem that creates a command owns its handle and can unregister it
         if (ConsoleManager.FindConsoleObject(Name) == nullptr)
         {
             if (IConsoleObject* ConsoleObject = Register())

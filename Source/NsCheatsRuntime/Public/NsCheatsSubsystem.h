@@ -16,28 +16,28 @@ class NSCHEATSRUNTIME_API FNsCheatBuilder
 public:
     FNsCheatBuilder(UNsCheatsSubsystem* InSubsystem, UObject* InOwner, FName InTab);
 
-    /** Selects the visible section used by following entries. */
+    /** Selects the visible section used by following entries */
     FNsCheatBuilder& Section(FName InSection);
 
-    /** Registers a click action. */
+    /** Registers a click action */
     FNsCheatBuilder& Button(FName Id, FText Label, FNsCheatExecuteDelegate Execute, FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers a boolean action shown as a toggle row. */
+    /** Registers a boolean action shown as a toggle row */
     FNsCheatBuilder& Toggle(FName Id, FText Label, FNsCheatGetBoolDelegate GetValue, FNsCheatSetBoolDelegate SetValue, FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers read-only text that refreshes with the cheat UI. */
+    /** Registers read-only text that refreshes with the cheat UI */
     FNsCheatBuilder& DebugText(FName Id, FText Label, FNsCheatDebugTextDelegate DebugText, FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers an editable float field. */
+    /** Registers an editable float field */
     FNsCheatBuilder& Float(FName Id, FText Label, FNsCheatGetFloatDelegate GetValue, FNsCheatSetFloatDelegate SetValue, FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers an editable text field. */
+    /** Registers an editable text field */
     FNsCheatBuilder& Text(FName Id, FText Label, FNsCheatGetStringDelegate GetValue, FNsCheatSetStringDelegate SetValue, FNsCheatExecuteDelegate Execute = FNsCheatExecuteDelegate(), FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers a reusable dropdown picker. */
+    /** Registers a reusable dropdown picker */
     FNsCheatBuilder& Picker(FName Id, FText Label, FNsCheatGetPickerOptionsDelegate GetOptions, FNsCheatGetPickerValueDelegate GetValue, FNsCheatSetPickerValueDelegate SetValue, FNsCheatExecuteDelegate Refresh = FNsCheatExecuteDelegate(), FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
-    /** Registers a compact row of related buttons. */
+    /** Registers a compact row of related buttons */
     FNsCheatBuilder& ButtonRow(FName Id, FText Label, TArray<FNsCheatInlineAction> Actions, FText Description = FText::GetEmpty(), int32 SortOrder = 0);
 
 private:
@@ -59,10 +59,10 @@ public:
     virtual void Initialize(FSubsystemCollectionBase& Collection) override;
     virtual void Deinitialize() override;
 
-    /** Starts a fluent native registration block for a provider object. */
+    /** Starts a fluent native registration block for a provider object */
     FNsCheatBuilder ForProvider(UObject* Owner, FName Tab);
 
-    /** Registers all cheats exposed by an object implementing INsCheatProviderInterface. */
+    /** Registers all cheats exposed by an object implementing INsCheatProviderInterface */
     UFUNCTION(BlueprintCallable, Category="NsCheats")
     void RegisterProvider(UObject* Provider);
 

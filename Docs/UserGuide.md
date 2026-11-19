@@ -299,7 +299,7 @@ These are the values of a new entry.
 
 ### Log
 
-The log categories are `LogNsCheats` and `LogNsCheatsReport`. `LogNsCheatsReport` writes each hotkey command and the folder of each report. The window has a **Reload** button that builds all rows again.
+The log categories are `LogNsCheats`, `LogNsCheatsReport`, and `LogNsCheatsPicker`. `LogNsCheatsReport` writes each hotkey command and the folder of each report. `LogNsCheatsPicker` writes an error when the point picker loses the player controller that it replaced. The window has a **Reload** button that builds all rows again.
 
 ## Troubleshooting
 
